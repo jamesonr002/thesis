@@ -14,7 +14,9 @@ setwd(find_root(is_git_root))
 
 # Boston, Washington D.C., LA, SF, NYC, Chicago
 cbsa_codes <- list("14460", "47900", "31080", "41860", "35620", "16980")
-token <- file("0_data/0_raw/api.txt", "r") |> readLines(n=1)
+con <- file("0_data/0_raw/api.txt", "r") 
+token <- con |> readLines(n=1)
+close(con)
 url <- "https://www.huduser.gov/hudapi/public/usps"
 
 # initialize dataframe
@@ -36,4 +38,4 @@ for (code in cbsa_codes) {
 	out <- rbind(out, tmp$data$results)
 }
 
-
+write_csv(out, "0_data/1_clean/cbsa_zip.csv")
