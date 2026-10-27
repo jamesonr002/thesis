@@ -1,5 +1,5 @@
 ---
-title: ""
+title: "Data Visualization 1"
 author: Jameson Roth
 output: 
   pdf_document:
@@ -11,7 +11,8 @@ header-includes:
 ---
 
 
-```{r}
+
+```{r, fig.width=10, fig.height=10}
 # ===============================================
 # Program: base_pop_data_vis.R
 # Author: Jameson Roth
@@ -55,7 +56,7 @@ chart <- ggplot(
 		fill = cbsa_name,
 	)
 ) +
-	geom_text(aes(label = count_gentrifiable), vjust=-1, size=3) +
+	geom_text(aes(label = count_gentrifiable), vjust=-1) +
 	geom_bar(stat = "identity") +
 	xlab("CBSA") +
 	ylab("Share of Gentrifiable Zips") +
@@ -69,7 +70,6 @@ chart <- ggplot(
 		),
 		axis.text.x = element_blank(),
 	)
-
 show(chart)
 ```
 
