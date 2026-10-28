@@ -46,7 +46,7 @@ zhvi_clean <- data |>
 				"2021",
 				"2022"
 			)
-	)
+	) |> drop_na(zhvi)
 
 zhvi_zip <- zhvi_clean |>
 	group_by(region_name, year) |>
@@ -60,12 +60,11 @@ zhvi_zip_cbsa <- left_join(
 	cbsa_zip,
 	by = c("region_name" = "geoid")
 )
-glimpse(zhvi_zip_cbsa)
 
 zhvi_out <- zhvi_zip_cbsa |>
 	group_by(cbsa, year) |>
 	mutate(
-		zhvi_rank = rank(annual_avg_zhvi) / length(annual_avg_zhvi),
+		zhvi_rank = percent_rank(annual_avg_zhvi) * 100,
 		median_zhvi_cbsa = median(annual_avg_zhvi, na.rm = TRUE)
 	) |>
 	ungroup() |>
@@ -77,5 +76,6 @@ zhvi_out <- zhvi_zip_cbsa |>
 		zhvi_rank
 	)
 glimpse(zhvi_out)
+summary(zhvi_out)
 
 write_csv(zhvi_out, "0_data/1_clean/zhvi.csv")

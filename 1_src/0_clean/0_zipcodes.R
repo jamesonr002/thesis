@@ -38,4 +38,7 @@ for (code in cbsa_codes) {
 	out <- rbind(out, tmp$data$results)
 }
 
+zcta_xw <- read_csv("0_data/0_raw/zip_zcta_xref.csv")
+out <- left_join(out, zcta_xw, by=c("geoid"="zip_code"))
+
 write_csv(out, "0_data/1_clean/cbsa_zip.csv")

@@ -115,7 +115,6 @@ cbsa_means <- joined |>
 		"a00100",
 		"agi_stub"
 	)
-glimpse(cbsa_means)
 
 zip_distributions <- joined |>
 	group_by(zipcode, year) |>
@@ -138,6 +137,7 @@ zip_distributions <- joined |>
 			csum <- cumsum(df$n1)
 			i <- which(csum >= n / 2)[1]
 			if (is.na(df$bin_max[i])) {
+				# TODO: how to handle zips where over 50% of the returns are in the top income bracket
 				return(NA)
 			}
 			csum_prev <- if (i == 1) 0 else csum[i - 1]
@@ -148,9 +148,8 @@ zip_distributions <- joined |>
 		})
 	) |>
 	ungroup() |>
-	select(zipcode, year, zip_fit, zip_median)
-glimpse(zip_distributions)
-
+	select(zipcode, year, zip_fit, zip_median) |>
+	drop_na()
 joined <- left_join(joined, zip_distributions, by = c("zipcode", "year"))
 
 cbsa_distributions <- cbsa_means |>
@@ -168,12 +167,29 @@ cbsa_distributions <- cbsa_means |>
 	ungroup() |>
 	select(cbsa, year, cbsa_fit)
 
-cbsa_distributions <- cbsa_distributions %>%
-	rowwise() %>%
-	mutate(cbsa_40pct = sb_percentiles_fix(get("cbsa_fit"), 40))
+# cbsa_distributions <- cbsa_distributions %>%
+# 	rowwise() %>%
+# 	mutate(
+# 		cbsa_40pct = sb_percentiles_fix(get("cbsa_fit"), 40),
+# 		cbsa_90pct = sb_percentiles_fix(get("cbsa_fit"), 90)
+# 	)
 
 joined <- left_join(joined, cbsa_distributions, by = c("cbsa", "year")) |>
-	select(statefips, zipcode, year, cbsa, zip_median, cbsa_40pct) |>
+	select(
+		statefips,
+		zipcode,
+		year,
+		cbsa,
+		cbsa_fit,
+		zip_median,
+	) |>
 	unique()
+
+joined <- joined %>%
+	rowwise() %>%
+	mutate(
+		zip_rank = (cbsa_fit$splineCDF(zip_median) * 100),
+	) |>
+	select(-cbsa_fit)
 
 write_csv(joined, "0_data/1_clean/soi_fitted.csv")
