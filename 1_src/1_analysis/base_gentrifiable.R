@@ -23,7 +23,8 @@ soi_zhvi_joined <- left_join(
 	soi,
 	zhvi,
 	by = c("zipcode" = "region_name", "year")
-) |> filter(!is.na(annual_avg_zhvi))
+) |>
+	filter(!is.na(annual_avg_zhvi))
 
 all_joined <- left_join(
 	soi_zhvi_joined,
@@ -37,7 +38,15 @@ all_joined <- left_join(
 		high_income = zip_rank >= 75,
 		pct_diff = abs(zip_rank - zhvi_rank),
 		# TODO: add condition: gentrifiable in previous year
-		gentrifying = pct_diff >= 25
+		gentrifying = pct_diff >= 25,
+		cbsa_name = case_when(
+			cbsa == "14460" ~ "Boston",
+			cbsa == "47900" ~ "Washington D.C.",
+			cbsa == "31080" ~ "Los Angeles",
+			cbsa == "41860" ~ "San Francisco",
+			cbsa == "35620" ~ "New York",
+			cbsa == "16980" ~ "Chicago",
+		)
 	)
 summary(all_joined)
 base_population <- all_joined |> filter(year == "2011")

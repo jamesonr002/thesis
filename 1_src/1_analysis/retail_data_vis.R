@@ -13,18 +13,18 @@ setwd(find_root(is_git_root))
 pop <- read_csv("0_data/1_clean/base_population.csv") |>
 	mutate(cbsa = as.character(cbsa), year = as.character(year)) |>
 	select(
-	       count_totartsentertainment,
-	       count_coffeeshopscafes,
-	       count_delis,
-	       count_fastfood,
-	       count_dollarstores,
-	       cbsa,
-	       year,
-	       low_income,
-	       high_income,
-	       zcta,
-	       zipcode
-
+		count_totartsentertainment,
+		count_coffeeshopscafes,
+		count_delis,
+		count_fastfood,
+		count_dollarstores,
+		cbsa_name,
+		cbsa,
+		year,
+		low_income,
+		high_income,
+		zcta,
+		zipcode
 	) |>
 	# TODO: move this to retail cleaning code
 	pivot_longer(
@@ -39,25 +39,45 @@ pop <- read_csv("0_data/1_clean/base_population.csv") |>
 
 grouped_lo <- pop |>
 	filter(low_income) |>
-	group_by(cbsa, year, category) |>
+	group_by(cbsa_name, year, category) |>
 	summarize(count = mean(count)) |>
 	ungroup()
 summary(grouped_lo)
 
 grouped_hi <- pop |>
 	filter(high_income) |>
-	group_by(cbsa, year, category) |>
+	group_by(cbsa_name, year, category) |>
 	summarize(count = mean(count)) |>
 	ungroup()
 summary(grouped_hi)
 
 ggplot(
 	grouped_lo,
-	aes(y = cbsa, x = count, fill = category)
+	aes(y = cbsa_name, x = count, fill = category)
 ) +
-	geom_bar(stat = "identity", position = "fill")
+	geom_bar(stat = "identity", position = "fill") +
+	xlab("Retail Distribution") +
+	ylab("CBSA") +
+	ggtitle("Low-Income Retail Distribution by CBSA in 2011") +
+	theme(
+		panel.background = element_rect(
+			fill = "white",
+			colour = "grey50"
+		),
+		axis.text.x = element_blank(),
+	)
 ggplot(
 	grouped_hi,
-	aes(y = cbsa, x = count, fill = category)
+	aes(y = cbsa_name, x = count, fill = category)
 ) +
-	geom_bar(stat = "identity", position = "fill")
+	geom_bar(stat = "identity", position = "fill") +
+	xlab("Retail Distribution") +
+	ylab("CBSA") +
+	ggtitle("High-Income Retail Distribution by CBSA in 2011") +
+	theme(
+		panel.background = element_rect(
+			fill = "white",
+			colour = "grey50"
+		),
+		axis.text.x = element_blank(),
+	)
