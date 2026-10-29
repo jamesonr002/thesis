@@ -34,7 +34,7 @@ pop <- read_csv("0_data/1_clean/base_population.csv") |>
 glimpse(pop)
 
 # Share gentrifiable by CBSA
-chart <- ggplot(
+ggplot(
 	pop,
 	aes(
 		x = reorder(cbsa_name, -share_gentrifiable),
@@ -42,12 +42,11 @@ chart <- ggplot(
 		fill = cbsa_name,
 	)
 ) +
-	geom_text(aes(label = count_gentrifiable), vjust=-1) +
+	geom_text(aes(label = count_gentrifiable), vjust=-1, size = 2.5) +
 	geom_bar(stat = "identity") +
 	xlab("CBSA") +
 	ylab("Share of Gentrifiable Zips") +
-	scale_y_continuous(breaks = seq(0, 0.5, 0.01)) +
-	scale_fill_discrete(name = "CBSA") +
+	scale_y_continuous(breaks = seq(0, 0.2, 0.01)) +
 	scale_fill_brewer(palette = "Spectral") +
 	ggtitle("Share of Gentrifiable Zips by CBSA in 2011") +
 	theme(
@@ -56,5 +55,5 @@ chart <- ggplot(
 			colour = "grey50"
 		),
 		axis.text.x = element_blank(),
+		text = element_text(size = 10)
 	)
-show(chart)
