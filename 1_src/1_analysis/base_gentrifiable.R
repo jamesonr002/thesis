@@ -33,7 +33,7 @@ all_joined <- left_join(
 ) |>
 	mutate(
 		# TODO: need to add distance from CBD - zip should be within 'inner third' of MSA
-		gentrifiable = (zip_median <= 40) & (zhvi_rank <= 50),
+		gentrifiable = (zip_rank <= 40) & (zhvi_rank <= 50),
 		low_income = zip_rank <= 50,
 		high_income = zip_rank >= 75,
 		pct_diff = abs(zip_rank - zhvi_rank),

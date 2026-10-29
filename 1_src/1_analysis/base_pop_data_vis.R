@@ -8,6 +8,7 @@
 library(tidyverse)
 library(ggplot2)
 library(rprojroot)
+library(RColorBrewer)
 
 setwd(find_root(is_git_root))
 
@@ -47,6 +48,7 @@ chart <- ggplot(
 	ylab("Share of Gentrifiable Zips") +
 	scale_y_continuous(breaks = seq(0, 0.5, 0.01)) +
 	scale_fill_discrete(name = "CBSA") +
+	scale_fill_brewer(palette = "Spectral") +
 	ggtitle("Share of Gentrifiable Zips by CBSA in 2011") +
 	theme(
 		panel.background = element_rect(

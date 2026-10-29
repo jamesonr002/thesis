@@ -5,14 +5,15 @@ output:
   pdf_document:
     latex_engine: pdflatex
 geometry: margin=1in
+fig-width: 50
+fig-height: 50
 header-includes:
   - \usepackage{fvextra}
   - \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
 ---
 
 
-
-```{r, fig.width=10, fig.height=10}
+```{r}
 # ===============================================
 # Program: base_pop_data_vis.R
 # Author: Jameson Roth
