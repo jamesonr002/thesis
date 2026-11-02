@@ -1,5 +1,5 @@
 # ===============================================
-# Program: 2_zhvi.R
+# Program: 3_zhvi.R
 # Author: Jameson Roth
 # Date: 2026 10 26
 # Description: Clean and export home value data from the ZHVI
@@ -12,10 +12,7 @@ library(binsmooth)
 
 setwd(find_root(is_git_root))
 
-cbsa_zip <- read_csv("0_data/1_clean/cbsa_zip.csv") |>
-	select("geoid", "cbsa")
-zips_keep <- cbsa_zip[["geoid"]]
-# TODO: make zips_keep a dataset so you don't have to keep extracting it
+zips_keep <- read_csv("0_data/1_clean/zips_keep.csv")[["geoid"]]
 
 data <- read_csv(
 	"0_data/0_raw/Zip_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"

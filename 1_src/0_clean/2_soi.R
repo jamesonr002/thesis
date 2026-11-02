@@ -1,5 +1,5 @@
 # ===============================================
-# Program: 0_soi.R
+# Program: 2_soi.R
 # Author: Jameson Roth
 # Date: 2026 10 20
 # Description: Clean SOI data
@@ -32,9 +32,8 @@ sb_percentiles_fix <- eval(parse(text = src), envir = asNamespace("binsmooth"))
 
 setwd(find_root(is_git_root))
 
-cbsa_zip <- read_csv("0_data/1_clean/cbsa_zip.csv") |>
-	select("geoid", "cbsa", "city", "state")
-zips_keep <- cbsa_zip[["geoid"]]
+zips_keep <- read_csv("0_data/1_clean/zips_keep.csv")[["geoid"]]
+county_zip <- read_csv("0_data/1_clean/county_zip.csv")
 
 clean_csv <- function(yr) {
 	tmp <- read_csv(
@@ -80,7 +79,7 @@ for (i in 11:22) {
 	soi <- rbind(soi, clean_csv(i))
 }
 
-joined <- left_join(soi, cbsa_zip, by = c("zipcode" = "geoid"))
+joined <- left_join(soi, county_zip, by = c("zipcode" = "geoid"))
 
 zip_means <- joined |>
 	group_by(zipcode, year) |>
@@ -94,7 +93,7 @@ zip_means <- joined |>
 joined <- left_join(joined, zip_means, by = c("zipcode", "year"))
 
 cbsa_means <- joined |>
-	group_by(cbsa, year, agi_stub) |>
+	group_by(cbsa_code, year, agi_stub) |>
 	summarize(
 		n1 = sum(n1, na.rm = TRUE),
 		a00100 = sum(a00100),
@@ -102,18 +101,18 @@ cbsa_means <- joined |>
 		bin_max = first(bin_max)
 	) |>
 	ungroup() |>
-	group_by(cbsa, year) |>
+	group_by(cbsa_code, year) |>
 	mutate(cbsa_mean = sum(a00100) / sum(n1)) |>
 	ungroup() |>
 	select(
-		"cbsa",
+		"cbsa_code",
 		"year",
 		"cbsa_mean",
 		"bin_min",
 		"bin_max",
 		"n1",
 		"a00100",
-		"agi_stub"
+		"agi_stub",
 	)
 
 zip_distributions <- joined |>
@@ -121,16 +120,16 @@ zip_distributions <- joined |>
 	arrange(agi_stub, .by_group = TRUE) |>
 	group_nest() |>
 	mutate(
-		zip_fit = map(data, function(df) {
-			be <- df$bin_max
-			bc <- df$n1
-			mean <- unique(df$zip_mean)
-			return(splinebins_fix(
-				be,
-				bc,
-				mean
-			))
-		}),
+		# zip_fit = map(data, function(df) {
+		# 	be <- df$bin_max
+		# 	bc <- df$n1
+		# 	mean <- unique(df$zip_mean)
+		# 	return(splinebins_fix(
+		# 		be,
+		# 		bc,
+		# 		mean
+		# 	))
+		# }),
 		# gini_zip = map_dbl(data$zip_fit, gini()),
 		zip_median = map_dbl(data, function(df) {
 			n <- sum(df$n1)
@@ -148,12 +147,12 @@ zip_distributions <- joined |>
 		})
 	) |>
 	ungroup() |>
-	select(zipcode, year, zip_fit, zip_median) |>
+	select(zipcode, year, zip_median) |>
 	drop_na()
 joined <- left_join(joined, zip_distributions, by = c("zipcode", "year"))
 
 cbsa_distributions <- cbsa_means |>
-	group_by(cbsa, year) |>
+	group_by(cbsa_code, year) |>
 	arrange(agi_stub, .by_group = TRUE) |>
 	group_nest() |>
 	mutate(
@@ -165,7 +164,7 @@ cbsa_distributions <- cbsa_means |>
 		})
 	) |>
 	ungroup() |>
-	select(cbsa, year, cbsa_fit)
+	select(cbsa_code, year, cbsa_fit)
 
 # cbsa_distributions <- cbsa_distributions %>%
 # 	rowwise() %>%
@@ -174,14 +173,15 @@ cbsa_distributions <- cbsa_means |>
 # 		cbsa_90pct = sb_percentiles_fix(get("cbsa_fit"), 90)
 # 	)
 
-joined <- left_join(joined, cbsa_distributions, by = c("cbsa", "year")) |>
+joined <- left_join(joined, cbsa_distributions, by = c("cbsa_code", "year")) |>
 	select(
 		statefips,
 		zipcode,
 		year,
-		cbsa,
+		cbsa_code,
 		cbsa_fit,
 		zip_median,
+		central
 	) |>
 	unique()
 

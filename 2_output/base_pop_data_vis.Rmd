@@ -1,5 +1,5 @@
 ---
-title: "Data Visualization 1"
+title: "Share Gentrifiable"
 author: Jameson Roth
 output: 
   pdf_document:
@@ -29,23 +29,15 @@ library(RColorBrewer)
 setwd(find_root(is_git_root))
 
 pop <- read_csv("0_data/1_clean/base_population.csv") |>
-	group_by(cbsa) |>
+	group_by(cbsa_code) |>
 	mutate(
 		count_gentrifiable = sum(gentrifiable, na.rm = TRUE),
 		total_zips = n(),
 		share_gentrifiable = count_gentrifiable / total_zips,
-		cbsa = as.character(cbsa),
-		cbsa_name = case_when(
-			cbsa == "14460" ~ "Boston",
-			cbsa == "47900" ~ "Washington D.C.",
-			cbsa == "31080" ~ "Los Angeles",
-			cbsa == "41860" ~ "San Francisco",
-			cbsa == "35620" ~ "New York",
-			cbsa == "16980" ~ "Chicago",
-		)
+		cbsa_code = as.character(cbsa_code),
 	) |>
 	ungroup() |>
-	select(cbsa, count_gentrifiable, share_gentrifiable, cbsa_name) |>
+	select(cbsa_code, count_gentrifiable, share_gentrifiable, cbsa_name) |>
 	unique()
 glimpse(pop)
 

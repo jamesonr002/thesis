@@ -12,7 +12,8 @@ library(RColorBrewer)
 setwd(find_root(is_git_root))
 
 pop <- read_csv("0_data/1_clean/base_population.csv") |>
-	mutate(cbsa = as.character(cbsa), year = as.character(year)) |>
+	filter(central) |>
+	mutate(cbsa_code = as.character(cbsa_code), year = as.character(year)) |>
 	select(
 		count_totartsentertainment,
 		count_coffeeshopscafes,
@@ -20,7 +21,7 @@ pop <- read_csv("0_data/1_clean/base_population.csv") |>
 		count_fastfood,
 		count_dollarstores,
 		cbsa_name,
-		cbsa,
+		cbsa_code,
 		year,
 		low_income,
 		high_income,
@@ -117,3 +118,5 @@ ggplot(
 		axis.text.x = element_blank(),
 	) +
 	scale_fill_brewer(palette = "Spectral")
+
+# TODO: plot individual MSAs by low, med, hi

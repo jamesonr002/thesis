@@ -29,23 +29,22 @@ soi_zhvi_joined <- left_join(
 all_joined <- left_join(
 	soi_zhvi_joined,
 	retail,
-	by = c("zipcode" = "geoid", "year", "cbsa")
+	by = c("zipcode" = "geoid", "year", "cbsa_code")
 ) |>
 	mutate(
-		# TODO: need to add distance from CBD - zip should be within 'inner third' of MSA
-		gentrifiable = (zip_rank <= 40) & (zhvi_rank <= 50),
+		gentrifiable = (zip_rank <= 40) & (central),
 		low_income = zip_rank <= 50,
 		high_income = zip_rank >= 75,
 		pct_diff = abs(zip_rank - zhvi_rank),
 		# TODO: add condition: gentrifiable in previous year
-		gentrifying = pct_diff >= 25,
+		gentrifying = (pct_diff >= 25),
 		cbsa_name = case_when(
-			cbsa == "14460" ~ "Boston",
-			cbsa == "47900" ~ "Washington D.C.",
-			cbsa == "31080" ~ "Los Angeles",
-			cbsa == "41860" ~ "San Francisco",
-			cbsa == "35620" ~ "New York",
-			cbsa == "16980" ~ "Chicago",
+			cbsa_code == "14460" ~ "Boston",
+			cbsa_code == "47900" ~ "Washington D.C.",
+			cbsa_code == "31080" ~ "Los Angeles",
+			cbsa_code == "41860" ~ "San Francisco",
+			cbsa_code == "35620" ~ "New York",
+			cbsa_code == "16980" ~ "Chicago",
 		)
 	)
 summary(all_joined)
