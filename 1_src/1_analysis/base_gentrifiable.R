@@ -33,7 +33,7 @@ all_joined <- left_join(
 ) |>
 	mutate(
 		gentrifiable = (zip_rank <= 40) & (central),
-		low_income = zip_rank <= 50,
+		low_income = zip_rank <= 40,
 		high_income = zip_rank >= 75,
 		pct_diff = abs(zip_rank - zhvi_rank),
 		# TODO: add condition: gentrifiable in previous year
