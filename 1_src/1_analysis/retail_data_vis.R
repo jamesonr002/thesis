@@ -81,17 +81,16 @@ lo_chart <- ggplot(
 	ylab("CBSA") +
 	labs(
 		title = "Figure 2: Low-Income Retail Distribution by CBSA in 2011",
-		caption = "Zip codes with a median income in the \n bottom fortieth percentile relative to the CBSA in 2011."
+		caption = "Includes ZIP codes with a median income in the \n bottom fortieth percentile relative to the CBSA in 2011."
 	) +
 	theme(
 		panel.background = element_rect(
 			fill = "white",
-			colour = "grey50"
 		),
 		axis.text.x = element_blank(),
 		text = element_text(size = 11, family = "Times")
 	) +
-	scale_fill_brewer(palette = "Spectral") +
+	scale_fill_brewer(palette = "Reds") +
 	guides(fill = guide_legend(title = "Retail Category"))
 
 hi_chart <- ggplot(
@@ -103,17 +102,16 @@ hi_chart <- ggplot(
 	ylab("CBSA") +
 	labs(
 		title = "Figure 4: High-Income Retail Distribution by CBSA in 2011",
-		caption = "Zip codes with a median income in the top \n twenty-fifth percentile relative to the CBSA in 2011."
+		caption = "Includes ZIP codes with a median income in the top \n twenty-fifth percentile relative to the CBSA in 2011."
 	) +
 	theme(
 		panel.background = element_rect(
 			fill = "white",
-			colour = "grey50"
 		),
 		axis.text.x = element_blank(),
 		text = element_text(size = 11, family = "Times")
 	) +
-	scale_fill_brewer(palette = "Spectral") +
+	scale_fill_brewer(palette = "Reds") +
 	guides(fill = guide_legend(title = "Retail Category"))
 
 mod_chart <- ggplot(
@@ -125,17 +123,16 @@ mod_chart <- ggplot(
 	ylab("CBSA") +
 	labs(
 		title = "Figure 3: Moderate-Income Retail Distribution by CBSA in 2011",
-		caption = "Zip codes with a median income below the top twenty-fifth \n percentile and above the fortieth percentile relative to the CBSA in 2011."
+		caption = "Includes ZIP codes with a median income below the top twenty-fifth \n percentile and above the fortieth percentile relative to the CBSA in 2011."
 	) +
 	theme(
 		panel.background = element_rect(
 			fill = "white",
-			colour = "grey50"
 		),
 		axis.text.x = element_blank(),
 		text = element_text(size = 11, family = "Times")
 	) +
-	scale_fill_brewer(palette = "Spectral") +
+	scale_fill_brewer(palette = "Reds") +
 	guides(fill = guide_legend(title = "Retail Category"))
 
 # TODO: plot individual MSAs by low, med, hi

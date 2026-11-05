@@ -31,25 +31,36 @@ base_pop_chart <- ggplot(
 	aes(
 		x = reorder(cbsa_name, -share_gentrifiable),
 		y = share_gentrifiable,
-		fill = cbsa_name,
+		# fill = cbsa_name,
 	)
 ) +
-	geom_text(aes(label = count_gentrifiable), vjust=-1, size = 2.8, family = "Times") +
-	geom_bar(stat = "identity") +
+	geom_bar(stat = "identity", fill = "cadetblue4") +
 	xlab("CBSA") +
 	ylab("Share of Gentrifiable ZIP Codes") +
-	scale_y_continuous(breaks = seq(0, 0.2, 0.01)) +
-	scale_fill_brewer(palette = "Spectral") +
-	ggtitle("Share of Gentrifiable ZIP Codes, 2011") +
+	scale_y_continuous(
+		breaks = seq(0, 0.15, 0.01),
+		limits = c(0, 0.15),
+		expand = c(0, 0)
+	) +
+	# ylim(0, 0.15) +
+	scale_fill_brewer(palette = "Set3") +
+	# guides(fill = guide_legend(title = "CBSA")) +
+	ggtitle("Figure 1: Share of Gentrifiable ZIP Codes in 2011") +
 	theme(
 		panel.background = element_rect(
 			fill = "white",
-			colour = "grey50"
+			# colour = "grey50"
 		),
-		axis.text.x = element_blank(),
-		text = element_text(size = 11, family = "Times")
-	) +
-	guides(fill=guide_legend(title="CBSA"))
+		axis.text.x = element_text(size = 10),
+		# axis.text.x = element_blank(),
+		text = element_text(size = 12, family = "Times")
+	)
 
-ggsave("4_drafts/figures/base_pop_chart.png", base_pop_chart, width = 170, height = 125, units = "mm")
+ggsave(
+	"4_drafts/figures/base_pop_chart.png",
+	base_pop_chart,
+	width = 170,
+	height = 125,
+	units = "mm"
+)
 show(base_pop_chart)

@@ -41,8 +41,7 @@ clean_csv <- function(yr) {
 		show_col_types = FALSE
 	) |>
 		clean_names() |>
-		select(statefips, zipcode, agi_stub, n1, a00100) |>
-		mutate(statefips = as.numeric(statefips)) |>
+		select(zipcode, agi_stub, n1, a00100) |>
 		filter(zipcode %in% zips_keep) |>
 		mutate(
 			year = paste0("20", yr),
@@ -67,7 +66,6 @@ clean_csv <- function(yr) {
 }
 
 soi <- data.frame(
-	statefips = character(),
 	zipcode = character(),
 	agi_stub = integer(),
 	n1 = integer(),

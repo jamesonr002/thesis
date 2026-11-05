@@ -22,3 +22,5 @@ cbsa <- cbsa |>
 			  full_code = paste0(fips_state_code, fips_county_code)) |>
 	select(cbsa_code, full_code, central)
 write_csv(cbsa, "0_data/1_clean/cbsa_fips.csv")
+
+glimpse(cbsa)

@@ -13,6 +13,7 @@ library(binsmooth)
 setwd(find_root(is_git_root))
 
 zips_keep <- read_csv("0_data/1_clean/zips_keep.csv")[["geoid"]]
+cbsa_zip <- read_csv("0_data/1_clean/county_zip.csv")
 
 data <- read_csv(
 	"0_data/0_raw/Zip_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"
@@ -59,7 +60,7 @@ zhvi_zip_cbsa <- left_join(
 )
 
 zhvi_out <- zhvi_zip_cbsa |>
-	group_by(cbsa, year) |>
+	group_by(cbsa_code, year) |>
 	mutate(
 		zhvi_rank = percent_rank(annual_avg_zhvi) * 100,
 		median_zhvi_cbsa = median(annual_avg_zhvi, na.rm = TRUE)
