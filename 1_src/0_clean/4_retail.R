@@ -29,7 +29,7 @@ f_names <- list(
 get_out_df <- function(in_df) {
 	tmp <- read_dta(paste0("0_data/0_raw/", in_df)) |>
 		filter(year >= 2011, year <= 2022)
-	tmp <- left_join(county_zip_zcta, tmp, by = c("zcta"="zcta10")) |>
+	tmp <- left_join(county_zip_zcta, tmp, by = c("zcta" = "zcta10")) |>
 		select(cbsa_code, geoid, zcta, year, starts_with("count_"))
 }
 
@@ -40,6 +40,14 @@ for (f in f_names) {
 	p <- p + 1
 }
 
-out <- out_df_list %>% reduce(left_join, by=c("cbsa_code","geoid","year","zcta"))
-names(out)
+out <- out_df_list %>%
+	reduce(left_join, by = c("cbsa_code", "geoid", "year", "zcta"))
+
+out <- out |>
+	pivot_longer(
+		starts_with("count"),
+		values_to = "count",
+		names_to = "category",
+		names_prefix = "count_"
+	)
 write_csv(out, "0_data/1_clean/retail_counts.csv")

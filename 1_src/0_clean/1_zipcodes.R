@@ -44,12 +44,20 @@ for (code in fips_codes) {
 	out <- rbind(out, tmp$data$results)
 }
 
-zcta_xw <- read_csv("0_data/0_raw/zip_zcta_xref.csv")
-out <- left_join(out, zcta_xw, by = c("geoid" = "zip_code"))
-out <- left_join(out, fips_data, by = c("county" = "full_code")) |>
-	select(geoid, zcta, cbsa_code, central) |>
-	unique()
-write_csv(out, "0_data/1_clean/county_zip.csv")
-write_csv(out |> select("geoid"), "0_data/1_clean/zips_keep.csv")
+data <- out |> select(county, geoid)
 
-summary(out)
+zcta_xw <- read_csv("0_data/0_raw/zip_zcta_xref.csv") |> select(-source)
+data <- left_join(data, zcta_xw, by = c("geoid" = "zip_code"))
+data <- data |> filter(!is.na(zcta))
+
+joined <- left_join(data, fips_data, by = c("county" = "full_code")) |>
+	select(geoid, zcta, cbsa_code, central) |>
+	group_by(geoid, zcta) |>
+	summarize(
+		cbsa_code = first(cbsa_code),
+		central = prod(central)
+	)
+
+
+write_csv(joined, "0_data/1_clean/county_zip.csv")
+write_csv(joined |> select("geoid"), "0_data/1_clean/zips_keep.csv")

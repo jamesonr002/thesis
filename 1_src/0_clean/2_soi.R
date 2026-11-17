@@ -15,18 +15,18 @@ library(binsmooth)
 # Fixing some code in the splinebins() function that leads to an error when the median is in the top bin
 #===================
 
-src <- deparse(binsmooth::splinebins)
-src <- sub("if (fitWarn)", "if (isTRUE(fitWarn))", src, fixed = TRUE)
-splinebins_fix <- eval(parse(text = src), envir = asNamespace("binsmooth"))
-
-src <- deparse(binsmooth::sb_percentiles)
-src <- sub(
-	"if (splinebinFit$fitWarn)",
-	"if (isTRUE(splinebinFit$fitWarn))",
-	src,
-	fixed = TRUE
-)
-sb_percentiles_fix <- eval(parse(text = src), envir = asNamespace("binsmooth"))
+# src <- deparse(binsmooth::splinebins)
+# src <- sub("if (fitWarn)", "if (isTRUE(fitWarn))", src, fixed = TRUE)
+# splinebins <- eval(parse(text = src), envir = asNamespace("binsmooth"))
+#
+# src <- deparse(binsmooth::sb_percentiles)
+# src <- sub(
+# 	"if (splinebinFit$fitWarn)",
+# 	"if (isTRUE(splinebinFit$fitWarn))",
+# 	src,
+# 	fixed = TRUE
+# )
+# sb_percentiles <- eval(parse(text = src), envir = asNamespace("binsmooth"))
 
 #===================
 
@@ -67,9 +67,9 @@ clean_csv <- function(yr) {
 
 soi <- data.frame(
 	zipcode = character(),
-	agi_stub = integer(),
-	n1 = integer(),
-	a00100 = double(),
+	agi_stub = numeric(),
+	n1 = numeric(),
+	a00100 = numeric(),
 	year = character()
 )
 
@@ -79,21 +79,14 @@ for (i in 11:22) {
 
 joined <- left_join(soi, county_zip, by = c("zipcode" = "geoid"))
 
-zip_means <- joined |>
-	group_by(zipcode, year) |>
-	summarize(
-		sum_n1 = sum(n1, na.rm = TRUE),
-		sum_a00100 = sum(a00100),
-		zip_mean = sum_a00100 / sum_n1
-	) |>
-	ungroup() |>
-	select("zipcode", "year", "zip_mean")
-joined <- left_join(joined, zip_means, by = c("zipcode", "year"))
+# TODO: how to handle zip codes with very low number of returns in certain brackets (n1 = 0.0001)
+joined <- joined |>
+	mutate(a00100 = case_when(n1 < 1 ~ 0, TRUE ~ a00100), n1 = case_when(a00100 < 1 ~ 0, TRUE ~ n1))
 
 cbsa_means <- joined |>
 	group_by(cbsa_code, year, agi_stub) |>
 	summarize(
-		n1 = sum(n1, na.rm = TRUE),
+		n1 = sum(n1),
 		a00100 = sum(a00100),
 		bin_min = first(bin_min),
 		bin_max = first(bin_max)
@@ -113,22 +106,11 @@ cbsa_means <- joined |>
 		"agi_stub",
 	)
 
-zip_distributions <- joined |>
+zip_medians <- joined |>
 	group_by(zipcode, year) |>
 	arrange(agi_stub, .by_group = TRUE) |>
 	group_nest() |>
 	mutate(
-		# zip_fit = map(data, function(df) {
-		# 	be <- df$bin_max
-		# 	bc <- df$n1
-		# 	mean <- unique(df$zip_mean)
-		# 	return(splinebins_fix(
-		# 		be,
-		# 		bc,
-		# 		mean
-		# 	))
-		# }),
-		# gini_zip = map_dbl(data$zip_fit, gini()),
 		zip_median = map_dbl(data, function(df) {
 			n <- sum(df$n1)
 			csum <- cumsum(df$n1)
@@ -147,7 +129,7 @@ zip_distributions <- joined |>
 	ungroup() |>
 	select(zipcode, year, zip_median) |>
 	drop_na()
-joined <- left_join(joined, zip_distributions, by = c("zipcode", "year"))
+joined <- left_join(joined, zip_medians, by = c("zipcode", "year"))
 
 cbsa_distributions <- cbsa_means |>
 	group_by(cbsa_code, year) |>
@@ -158,22 +140,14 @@ cbsa_distributions <- cbsa_means |>
 			bin_edges <- df$bin_max
 			bin_counts <- df$n1
 			cbsa_mean <- unique(df$cbsa_mean)
-			return(splinebins_fix(bin_edges, bin_counts, cbsa_mean))
+			return(splinebins(bin_edges, bin_counts, cbsa_mean))
 		})
 	) |>
 	ungroup() |>
 	select(cbsa_code, year, cbsa_fit)
 
-# cbsa_distributions <- cbsa_distributions %>%
-# 	rowwise() %>%
-# 	mutate(
-# 		cbsa_40pct = sb_percentiles_fix(get("cbsa_fit"), 40),
-# 		cbsa_90pct = sb_percentiles_fix(get("cbsa_fit"), 90)
-# 	)
-
 joined <- left_join(joined, cbsa_distributions, by = c("cbsa_code", "year")) |>
 	select(
-		statefips,
 		zipcode,
 		year,
 		cbsa_code,

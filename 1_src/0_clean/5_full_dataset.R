@@ -1,43 +1,47 @@
 # ===============================================
-# Program: base_gentrifying.R
+# Program: 5_full_dataset.R
 # Author: Jameson Roth
-# Date: 2026 10 26
-# Description: Get population of gentrifiable zip codes in 2011
+# Date: 2026 11 10
+# Description: Pull all three datasets and merge based on zipcode-year
 # ===============================================
 
 library(tidyverse)
-library(rprojroot)
-library(binsmooth)
 
-setwd(find_root(is_git_root))
-
-zhvi <- read_csv("0_data/1_clean/zhvi.csv")
 soi <- read_csv("0_data/1_clean/soi_fitted.csv")
+zhvi <- read_csv("0_data/1_clean/zhvi.csv")
 retail <- read_csv("0_data/1_clean/retail_counts.csv")
 
-names(zhvi)
-summary(soi)
-names(retail)
+prev_year_gen <- function(year, zipcode) {
+	if (year == 2011) {
+		return(FALSE)
+	} else {
+		tmp <- all_joined[
+			all_joined$year == year & all_joined$zipcode == zipcode,
+		]
+		return(isTRUE(tmp$gentrifiable))
+	}
+}
 
 soi_zhvi_joined <- left_join(
 	soi,
 	zhvi,
 	by = c("zipcode" = "region_name", "year")
 ) |>
-	filter(!is.na(annual_avg_zhvi))
+	filter(!is.na(annual_avg_zhvi)) |>
+	filter(!is.na(zip_rank)) |>
+	unique()
 
 all_joined <- left_join(
 	soi_zhvi_joined,
 	retail,
 	by = c("zipcode" = "geoid", "year", "cbsa_code")
 ) |>
+#TODO: add shares of each retail category by cbsa-year
 	mutate(
 		gentrifiable = (zip_rank <= 40) & (central),
 		low_income = zip_rank <= 40,
 		high_income = zip_rank >= 75,
-		pct_diff = abs(zip_rank - zhvi_rank),
-		# TODO: add condition: gentrifiable in previous year
-		gentrifying = (pct_diff >= 25),
+		pct_diff = zhvi_rank - zip_rank,
 		cbsa_name = case_when(
 			cbsa_code == "14460" ~ "Boston",
 			cbsa_code == "47900" ~ "Washington D.C.",
@@ -46,6 +50,12 @@ all_joined <- left_join(
 			cbsa_code == "35620" ~ "New York",
 			cbsa_code == "16980" ~ "Chicago",
 		)
+	)
+
+all_joined <- all_joined |>
+	rowwise() |>
+	mutate(
+		gentrifying = (pct_diff >= 25) & prev_year_gen(year, zipcode)
 	)
 summary(all_joined)
 base_population <- all_joined |> filter(year == "2011")

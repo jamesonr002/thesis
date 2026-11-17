@@ -1,5 +1,5 @@
 # ===============================================
-# Program: retail_data_vis.R
+# Program: 02_retail_data_vis.R
 # Author: Jameson Roth
 # Date: 2026 10 27
 # Description: Produce data visualization 2 - retail counts for different subsets of zips

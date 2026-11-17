@@ -8,7 +8,6 @@
 library(tidyverse)
 library(rprojroot)
 library(janitor)
-library(binsmooth)
 
 setwd(find_root(is_git_root))
 
