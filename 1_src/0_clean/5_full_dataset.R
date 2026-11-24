@@ -16,29 +16,27 @@ prev_year_gen <- function(year, zipcode) {
 		return(FALSE)
 	} else {
 		tmp <- all_joined[
-			all_joined$year == year & all_joined$zipcode == zipcode,
+			all_joined$year == year &
+				all_joined$region_name == zipcode,
 		]
 		return(isTRUE(tmp$gentrifiable))
 	}
 }
 
-soi_zhvi_joined <- left_join(
-	soi,
+soi_zhvi_joined <- inner_join(
 	zhvi,
-	by = c("zipcode" = "region_name", "year")
-) |>
-	filter(!is.na(annual_avg_zhvi)) |>
-	filter(!is.na(zip_rank)) |>
-	unique()
+	soi,
+	by = c("region_name" = "zipcode", "year")
+)
 
 all_joined <- left_join(
 	soi_zhvi_joined,
 	retail,
-	by = c("zipcode" = "geoid", "year", "cbsa_code")
+	by = c("region_name" = "geoid", "year", "cbsa_code")
 ) |>
-#TODO: add shares of each retail category by cbsa-year
+	#TODO: add shares of each retail category by cbsa-year
 	mutate(
-		gentrifiable = (zip_rank <= 40) & (central),
+		gentrifiable = (zip_rank <= 40),
 		low_income = zip_rank <= 40,
 		high_income = zip_rank >= 75,
 		pct_diff = zhvi_rank - zip_rank,
@@ -55,10 +53,20 @@ all_joined <- left_join(
 all_joined <- all_joined |>
 	rowwise() |>
 	mutate(
-		gentrifying = (pct_diff >= 25) & prev_year_gen(year, zipcode)
+		gentrifying = (pct_diff >= 25) &
+			prev_year_gen(year, region_name)
+	) |>
+	rename(zipcode = region_name)
+
+categories_pop <- all_joined |>
+	pivot_longer(
+		starts_with("count"),
+		values_to = "count",
+		names_to = "category",
+		names_prefix = "count_"
 	)
-summary(all_joined)
 base_population <- all_joined |> filter(year == "2011")
 
 write_csv(base_population, "0_data/1_clean/base_population.csv")
 write_csv(all_joined, "0_data/1_clean/population.csv")
+write_csv(categories_pop, "0_data/1_clean/population_by_cat.csv")

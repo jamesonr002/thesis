@@ -11,29 +11,10 @@ library(dplyr)
 library(rprojroot)
 library(binsmooth)
 
-#====================
-# Fixing some code in the splinebins() function that leads to an error when the median is in the top bin
-#===================
-
-# src <- deparse(binsmooth::splinebins)
-# src <- sub("if (fitWarn)", "if (isTRUE(fitWarn))", src, fixed = TRUE)
-# splinebins <- eval(parse(text = src), envir = asNamespace("binsmooth"))
-#
-# src <- deparse(binsmooth::sb_percentiles)
-# src <- sub(
-# 	"if (splinebinFit$fitWarn)",
-# 	"if (isTRUE(splinebinFit$fitWarn))",
-# 	src,
-# 	fixed = TRUE
-# )
-# sb_percentiles <- eval(parse(text = src), envir = asNamespace("binsmooth"))
-
-#===================
-
 setwd(find_root(is_git_root))
 
-zips_keep <- read_csv("0_data/1_clean/zips_keep.csv")[["geoid"]]
-county_zip <- read_csv("0_data/1_clean/county_zip.csv")
+zip_data <- read_csv("0_data/1_clean/zips.csv")
+zips_keep <- zip_data[["geoid"]]
 
 clean_csv <- function(yr) {
 	tmp <- read_csv(
@@ -77,7 +58,7 @@ for (i in 11:22) {
 	soi <- rbind(soi, clean_csv(i))
 }
 
-joined <- left_join(soi, county_zip, by = c("zipcode" = "geoid"))
+joined <- left_join(soi, zip_data, by = c("zipcode" = "geoid"))
 
 # TODO: how to handle zip codes with very low number of returns in certain brackets (n1 = 0.0001)
 joined <- joined |>
@@ -162,6 +143,7 @@ joined <- joined %>%
 	mutate(
 		zip_rank = (cbsa_fit$splineCDF(zip_median) * 100),
 	) |>
-	select(-cbsa_fit)
+	select(-cbsa_fit) |>
+	filter(!is.na(zip_median))
 
 write_csv(joined, "0_data/1_clean/soi_fitted.csv")

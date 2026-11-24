@@ -11,27 +11,10 @@ library(RColorBrewer)
 
 setwd(find_root(is_git_root))
 
-pop <- read_csv("0_data/1_clean/population.csv") |>
+pop <- read_csv("0_data/1_clean/population_by_cat.csv") |>
 	mutate(
 		cbsa_code = as.character(cbsa_code),
 		year = as.character(year)
-	) |>
-	select(
-		count_totartsentertainment,
-		count_coffeeshopscafes,
-		count_delis,
-		count_fastfood,
-		count_dollarstores,
-		cbsa_name,
-		cbsa_code,
-		year,
-		low_income,
-		high_income,
-		zcta,
-		zipcode,
-		zip_rank,
-		gentrifying,
-		gentrifiable
 	) |>
 	mutate(
 		category_pretty = case_when(
@@ -42,10 +25,12 @@ pop <- read_csv("0_data/1_clean/population.csv") |>
 			category ==
 				"totartsentertainment" ~ "Arts and Entertainment"
 		)
-	)
+	) |>
+	filter(category_pretty != "NA") |>
+	group_by(cbsa_code, year) |>
+	mutate(cbsa_retail_sum = sum(count)) |>
+	ungroup()
 
-
-# TODO: control for cbsa-year population size or number of total businesses in cbsa-year to make this more accurate?
 counter <- 7
 cbsa_income_counts_graph <- function(cbsa) {
 	tmp <- pop |>
@@ -92,7 +77,7 @@ cbsa_income_counts_graph <- function(cbsa) {
 		height = 100,
 		units = "mm"
 	)
-	counter <- counter+1
+	counter <- counter + 1
 
 	tmphi <- ggplot(
 		tmp |>
@@ -136,7 +121,7 @@ cbsa_income_counts_graph <- function(cbsa) {
 		height = 100,
 		units = "mm"
 	)
-	counter <- counter+1
+	counter <- counter + 1
 	tmpgen <- ggplot(
 		tmp |>
 			filter(gentrifying) |>

@@ -12,13 +12,7 @@ library(haven)
 
 setwd(find_root(is_git_root))
 
-# zipped_files <- list.files(path = "0_data/0_raw/", pattern = ".zip$")
-# outDir <- "0_data/0_raw/"
-# for (i in zipped_files) {
-# 	unzip(paste0("0_data/0_raw/", i), exdir = outDir)
-# }
-
-county_zip_zcta <- read_csv("0_data/1_clean/county_zip.csv") |> drop_na()
+zips <- read_csv("0_data/1_clean/zips.csv")
 
 f_names <- list(
 	"ICPSR_209163-V4.0/nanda_artsentleisure_Zcta10_1990-2022_01.dta",
@@ -29,8 +23,8 @@ f_names <- list(
 get_out_df <- function(in_df) {
 	tmp <- read_dta(paste0("0_data/0_raw/", in_df)) |>
 		filter(year >= 2011, year <= 2022)
-	tmp <- left_join(county_zip_zcta, tmp, by = c("zcta" = "zcta10")) |>
-		select(cbsa_code, geoid, zcta, year, starts_with("count_"))
+	tmp <- left_join(zips, tmp, by = c("geoid" = "zcta10")) |>
+		select(cbsa_code, geoid, year, starts_with("count_"))
 }
 
 out_df_list <- vector("list", 3)
@@ -41,13 +35,13 @@ for (f in f_names) {
 }
 
 out <- out_df_list %>%
-	reduce(left_join, by = c("cbsa_code", "geoid", "year", "zcta"))
+	reduce(left_join, by = c("cbsa_code", "geoid", "year"))
 
-out <- out |>
-	pivot_longer(
-		starts_with("count"),
-		values_to = "count",
-		names_to = "category",
-		names_prefix = "count_"
-	)
+# out <- out |>
+# 	pivot_longer(
+# 		starts_with("count"),
+# 		values_to = "count",
+# 		names_to = "category",
+# 		names_prefix = "count_"
+# 	)
 write_csv(out, "0_data/1_clean/retail_counts.csv")

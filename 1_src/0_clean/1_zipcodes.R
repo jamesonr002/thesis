@@ -5,6 +5,10 @@
 # Description: Get zipcodes in counties of interest
 # ===============================================
 
+# TODO: take out non-central
+# TODO: visualizations: stacked bar chart showing hi-mod-low-gentrifiable distribution in 2011 by CBSA
+# TODO: aggregate hi-mod-low retail distribution stacked bar chart to all CBSAs, hi-mod-low
+
 library(tidyverse)
 library(rprojroot)
 library(httr)
@@ -14,8 +18,9 @@ setwd(find_root(is_git_root))
 
 # Boston, Washington D.C., LA, SF, NYC, Chicago
 cbsa_codes <- list("14460", "47900", "31080", "41860", "35620", "16980")
-fips_data <- read_csv("0_data/1_clean/cbsa_fips.csv")
-fips_codes <- fips_data[["full_code"]]
+cbsa_county_xw <- read_csv("0_data/1_clean/cbsa_county_xw.csv")
+fips_codes <- cbsa_county_xw[['full_code']]
+zcta_xw <- read_csv("0_data/0_raw/zip_zcta_xref.csv") |> select(-source)
 
 con <- file("0_data/0_raw/api.txt", "r")
 token <- con |> readLines(n = 1)
@@ -46,18 +51,13 @@ for (code in fips_codes) {
 
 data <- out |> select(county, geoid)
 
-zcta_xw <- read_csv("0_data/0_raw/zip_zcta_xref.csv") |> select(-source)
 data <- left_join(data, zcta_xw, by = c("geoid" = "zip_code"))
-data <- data |> filter(!is.na(zcta))
+data <- data |> filter(geoid == zcta)
 
-joined <- left_join(data, fips_data, by = c("county" = "full_code")) |>
-	select(geoid, zcta, cbsa_code, central) |>
-	group_by(geoid, zcta) |>
-	summarize(
-		cbsa_code = first(cbsa_code),
-		central = prod(central)
-	)
+joined <- left_join(data, cbsa_county_xw, by = c("county" = "full_code")) |>
+	select(geoid, cbsa_code, central) |>
+	group_by(geoid, cbsa_code) |>
+	summarize(central = prod(central)) |>
+	ungroup()
 
-
-write_csv(joined, "0_data/1_clean/county_zip.csv")
-write_csv(joined |> select("geoid"), "0_data/1_clean/zips_keep.csv")
+write_csv(joined, "0_data/1_clean/zips.csv")

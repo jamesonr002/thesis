@@ -11,8 +11,8 @@ library(janitor)
 
 setwd(find_root(is_git_root))
 
-zips_keep <- read_csv("0_data/1_clean/zips_keep.csv")[["geoid"]]
-cbsa_zip <- read_csv("0_data/1_clean/county_zip.csv")
+zips <- read_csv("0_data/1_clean/zips.csv")
+zips_keep <- zips[["geoid"]]
 
 data <- read_csv(
 	"0_data/0_raw/Zip_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"
@@ -43,22 +43,21 @@ zhvi_clean <- data |>
 				"2021",
 				"2022"
 			)
-	) |> drop_na(zhvi)
+	) |>
+	drop_na(zhvi)
 
 zhvi_zip <- zhvi_clean |>
 	group_by(region_name, year) |>
 	summarize(
 		annual_avg_zhvi = mean(zhvi),
 	) |>
-	ungroup()
+	ungroup() |>
+	left_join(
+		zips,
+		by = c("region_name" = "geoid")
+	)
 
-zhvi_zip_cbsa <- left_join(
-	zhvi_zip,
-	cbsa_zip,
-	by = c("region_name" = "geoid")
-)
-
-zhvi_out <- zhvi_zip_cbsa |>
+zhvi_out <- zhvi_zip |>
 	group_by(cbsa_code, year) |>
 	mutate(
 		zhvi_rank = percent_rank(annual_avg_zhvi) * 100,
